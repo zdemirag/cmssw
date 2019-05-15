@@ -81,10 +81,11 @@ void PuppiProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       if (!vtxIter->isFake() && vtxIter->ndof()>=fVtxNdofCut && std::abs(vtxIter->z())<=fVtxZCut)
          npv++;
    }
-   // This is a dummy to access the "translate" method which i
-   // non-static member function even though it doesn't need t
-   // Will fix in the future. 
-   static const reco::PFCandidate dummySinceTranslateIsNotStat
+
+  // This is a dummy to access the "translate" method which is a
+  // non-static member function even though it doesn't need to be. 
+  // Will fix in the future. 
+  static const reco::PFCandidate dummySinceTranslateIsNotStatic;
 
   //Fill the reco objects
   std::vector<double> lDepths;
@@ -228,11 +229,6 @@ void PuppiProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   lPupFiller.insert(hPFProduct,lWeights.begin(),lWeights.end());
   lPupFiller.fill();
 
-  // This is a dummy to access the "translate" method which is a
-  // non-static member function even though it doesn't need to be. 
-  // Will fix in the future. 
-  static const reco::PFCandidate dummySinceTranslateIsNotStatic;
-
   // Fill a new PF/Packed Candidate Collection and write out the ValueMap of the new p4s.
   // Since the size of the ValueMap must be equal to the input collection, we need
   // to search the "puppi" particles to find a match for each input. If none is found,
@@ -343,7 +339,7 @@ void PuppiProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 // ----------------------------------------------------------
 double PuppiProducer::computeDepth(auto *aPF) { 
   float lDepth[7];
-  if(aPF->pdgId() != 130 or aPF->() != 130) return 1;
+  if(aPF->pdgId() != 130) return 1; //Add the charged hadrons here as well
   for(unsigned int i0 = 0; i0 < 7; i0++) lDepth[i0] = aPF->hcalDepthEnergyFraction(i0+1);
   //Ratio method for now
   return lDepth[1]/(lDepth[0]+lDepth[1]);
