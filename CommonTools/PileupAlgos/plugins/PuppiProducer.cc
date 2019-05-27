@@ -346,7 +346,6 @@ double PuppiProducer::computeDepth(auto *aPF) {
   for(unsigned int i0 = 0; i0 < 7; i0++) lDepth[i0] = aPF->hcalDepthEnergyFraction(i0+1);
   //Ratio method for now
   //return lDepth[1]/(lDepth[0]+lDepth[1]);
-  for(unsigned int i0 = 0; i0 < 7; i0++) lDepth[i0] = aPF->hcalDepthEnergyFraction(i0+1);
   fPionDisc->fDepth1 = lDepth[0];
   fPionDisc->fDepth2 = lDepth[1];
   fPionDisc->fDepth3 = lDepth[2];
