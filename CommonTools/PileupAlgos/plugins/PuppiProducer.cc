@@ -34,6 +34,7 @@ PuppiProducer::PuppiProducer(const edm::ParameterSet& iConfig) {
   fVtxNdofCut = iConfig.getParameter<int>("vtxNdofCut");
   fVtxZCut = iConfig.getParameter<double>("vtxZCut");
   fPuppiContainer = std::unique_ptr<PuppiContainer> ( new PuppiContainer(iConfig) );
+  std::string lNNFile =  iConfig.getUntrackedParameter<std::string>("NNFileName","CommonTools/PileupAlgos/data/tf_model.pb");
 
   tokenPFCandidates_
     = consumes<CandidateView>(iConfig.getParameter<edm::InputTag>("candName"));
@@ -57,6 +58,8 @@ PuppiProducer::PuppiProducer(const edm::ParameterSet& iConfig) {
     produces<std::vector<double>> ("PuppiAlphasMed");
     produces<std::vector<double>> ("PuppiAlphasRms");
   }
+  fPionDisc = new DepthNNId();
+  fPionDisc->initialize(lNNFile);
   produces<edm::ValueMap<float>>("PuppiDepth");
 }
 // ------------------------------------------------------------------------------------------
@@ -342,7 +345,22 @@ double PuppiProducer::computeDepth(auto *aPF) {
   if(aPF->pdgId() != 130) return 1; //Add the charged hadrons here as well
   for(unsigned int i0 = 0; i0 < 7; i0++) lDepth[i0] = aPF->hcalDepthEnergyFraction(i0+1);
   //Ratio method for now
-  return lDepth[1]/(lDepth[0]+lDepth[1]);
+  //return lDepth[1]/(lDepth[0]+lDepth[1]);
+  for(unsigned int i0 = 0; i0 < 7; i0++) lDepth[i0] = aPF->hcalDepthEnergyFraction(i0+1);
+  fPionDisc->fDepth1 = lDepth[0];
+  fPionDisc->fDepth2 = lDepth[1];
+  fPionDisc->fDepth3 = lDepth[2];
+  fPionDisc->fDepth4 = lDepth[3];
+  fPionDisc->fDepth5 = lDepth[4];
+  fPionDisc->fDepth6 = lDepth[5];
+  fPionDisc->fDepth7 = lDepth[6];
+  fPionDisc->fEcal   = (1.-aPF->hcalFraction());
+  fPionDisc->fEta    = aPF->eta();
+  fPionDisc->fPhi    = aPF->phi();
+  fPionDisc->SetNNVectorVar();
+  double d = fPionDisc->EvaluateNN();
+  double pval = d/(1.+d);
+  return pval;
 }
 // ------------------------------------------------------------------------------------------
 void PuppiProducer::beginJob() {
